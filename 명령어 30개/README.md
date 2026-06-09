@@ -98,7 +98,83 @@ int main() {
 }
 ```
 
-# 5. touch
+# 5. rm
+
+## 기능
+
+파일을 삭제합니다.
+
+```c
+#include <stdio.h>
+
+int main() {
+
+    if (remove("test.txt") == 0) {
+        printf("삭제 완료\n");
+    } else {
+        perror("rm 오류");
+    }
+
+    return 0;
+}
+```
+
+# 6. mv
+
+## 기능
+
+파일 이름을 변경하거나 파일을 이동합니다.
+
+```c
+#include <stdio.h>
+
+int main() {
+
+    if (rename("old.txt", "new.txt") == 0) {
+        printf("이동 완료\n");
+    } else {
+        perror("mv 오류");
+    }
+
+    return 0;
+}
+```
+
+# 7. cp
+
+## 기능
+
+파일을 복사합니다.
+
+```c
+#include <stdio.h>
+
+int main() {
+
+    FILE *src = fopen("source.txt", "r");
+    FILE *dst = fopen("copy.txt", "w");
+
+    int ch;
+
+    if (!src || !dst) {
+        perror("cp 오류");
+        return 1;
+    }
+
+    while ((ch = fgetc(src)) != EOF) {
+        fputc(ch, dst);
+    }
+
+    fclose(src);
+    fclose(dst);
+
+    printf("복사 완료\n");
+
+    return 0;
+}
+```
+
+# 8. touch
 
 ## 기능
 
@@ -124,88 +200,11 @@ int main() {
 }
 ```
 
-# 6. cp
+# 9. head
 
 ## 기능
 
-파일을 복사합니다.
-
-```c
-#include <stdio.h>
-
-int main() {
-
-    FILE *src = fopen("source.txt", "r");
-    FILE *dst = fopen("copy.txt", "w");
-
-    char ch;
-
-    if (!src || !dst) {
-        perror("cp 오류");
-        return 1;
-    }
-
-    while ((ch = fgetc(src)) != EOF) {
-        fputc(ch, dst);
-    }
-
-    fclose(src);
-    fclose(dst);
-
-    printf("복사 완료\n");
-
-    return 0;
-}
-```
-
-# 7. mv
-
-## 기능
-
-파일 이름을 변경하거나 파일을 이동합니다.
-
-```c
-#include <stdio.h>
-
-int main() {
-
-    if (rename("old.txt", "new.txt") == 0) {
-        printf("이동 완료\n");
-    } else {
-        perror("mv 오류");
-    }
-
-    return 0;
-}
-```
-
-# 8. rm
-
-## 기능
-
-파일을 삭제합니다.
-
-```c
-#include <stdio.h>
-#include <unistd.h>
-
-int main() {
-
-    if (remove("test.txt") == 0) {
-        printf("삭제 완료\n");
-    } else {
-        perror("rm 오류");
-    }
-
-    return 0;
-}
-```
-
-# 9. cat
-
-## 기능
-
-파일 내용을 화면에 출력합니다.
+파일의 앞부분 10줄을 출력합니다.
 
 ```c
 #include <stdio.h>
@@ -214,9 +213,79 @@ int main() {
 
     FILE *fp = fopen("test.txt", "r");
 
-    char ch;
+    char line[256];
+    int count = 0;
 
-    if (!fp) {
+    if (fp == NULL) {
+        perror("head 오류");
+        return 1;
+    }
+
+    while (fgets(line, sizeof(line), fp) && count < 10) {
+        printf("%s", line);
+        count++;
+    }
+
+    fclose(fp);
+
+    return 0;
+}
+```
+
+# 10. tail
+
+## 기능
+
+파일의 마지막 10줄을 출력합니다.
+
+```c
+#include <stdio.h>
+
+#define MAX_LINES 10
+#define MAX_LEN 256
+
+int main() {
+
+    FILE *fp = fopen("test.txt", "r");
+
+    if (fp == NULL) {
+        perror("tail 오류");
+        return 1;
+    }
+
+    char lines[MAX_LINES][MAX_LEN];
+    int count = 0;
+
+    while (fgets(lines[count % MAX_LINES], MAX_LEN, fp)) {
+        count++;
+    }
+
+    int start = (count > MAX_LINES) ? count - MAX_LINES : 0;
+
+    for (int i = start; i < count; i++) {
+        printf("%s", lines[i % MAX_LINES]);
+    }
+
+    fclose(fp);
+
+    return 0;
+}
+```
+# 11. cat
+
+## 기능
+
+파일의 내용을 화면에 출력합니다.
+
+```c id="gv7i4u"
+#include <stdio.h>
+
+int main() {
+
+    FILE *fp = fopen("test.txt", "r");
+    int ch;
+
+    if (fp == NULL) {
         perror("cat 오류");
         return 1;
     }
@@ -231,112 +300,13 @@ int main() {
 }
 ```
 
-# 10. head
+# 12. find
 
 ## 기능
 
-파일의 앞부분을 출력합니다.
+현재 디렉터리에서 특정 파일을 검색합니다.
 
-```c
-#include <stdio.h>
-
-int main() {
-
-    FILE *fp = fopen("test.txt", "r");
-
-    char line[256];
-    int count = 0;
-
-    while (fgets(line, sizeof(line), fp) && count < 10) {
-        printf("%s", line);
-        count++;
-    }
-
-    fclose(fp);
-
-    return 0;
-}
-```
-# 11. tail
-
-## 기능
-
-파일의 마지막 부분을 출력합니다.
-
-```c id="wsmcly"
-#include <stdio.h>
-#include <stdlib.h>
-
-#define MAX_LINES 10
-#define MAX_LEN 256
-
-int main() {
-    FILE *fp = fopen("test.txt", "r");
-
-    if (!fp) {
-        perror("tail 오류");
-        return 1;
-    }
-
-    char lines[MAX_LINES][MAX_LEN];
-    int count = 0;
-
-    while (fgets(lines[count % MAX_LINES], MAX_LEN, fp)) {
-        count++;
-    }
-
-    int start = count > MAX_LINES ? count - MAX_LINES : 0;
-
-    for (int i = start; i < count; i++) {
-        printf("%s", lines[i % MAX_LINES]);
-    }
-
-    fclose(fp);
-
-    return 0;
-}
-```
-
-# 12. grep
-
-## 기능
-
-파일에서 특정 문자열을 검색합니다.
-
-```c id="48hfgf"
-#include <stdio.h>
-#include <string.h>
-
-int main() {
-
-    FILE *fp = fopen("test.txt", "r");
-
-    char line[256];
-
-    if (!fp) {
-        perror("grep 오류");
-        return 1;
-    }
-
-    while (fgets(line, sizeof(line), fp)) {
-        if (strstr(line, "hello")) {
-            printf("%s", line);
-        }
-    }
-
-    fclose(fp);
-
-    return 0;
-}
-```
-
-# 13. find
-
-## 기능
-
-특정 파일을 검색합니다.
-
-```c id="uk30cl"
+```c id="g31l5h"
 #include <stdio.h>
 #include <dirent.h>
 #include <string.h>
@@ -348,7 +318,7 @@ int main() {
 
     dir = opendir(".");
 
-    if (!dir) {
+    if (dir == NULL) {
         perror("find 오류");
         return 1;
     }
@@ -366,13 +336,180 @@ int main() {
 }
 ```
 
-# 14. chmod
+# 13. whoami
 
 ## 기능
 
-파일 권한을 변경합니다.
+현재 로그인한 사용자의 이름을 출력합니다.
 
-```c id="5ngn7a"
+```c id="43x4ow"
+#include <stdio.h>
+#include <unistd.h>
+#include <pwd.h>
+
+int main() {
+
+    struct passwd *pw;
+
+    pw = getpwuid(getuid());
+
+    if (pw == NULL) {
+        perror("whoami 오류");
+        return 1;
+    }
+
+    printf("%s\n", pw->pw_name);
+
+    return 0;
+}
+```
+
+# 14. hostname
+
+## 기능
+
+현재 시스템의 호스트 이름을 출력합니다.
+
+```c id="dz3r8u"
+#include <stdio.h>
+#include <unistd.h>
+
+int main() {
+
+    char hostname[256];
+
+    if (gethostname(hostname, sizeof(hostname)) == 0) {
+        printf("%s\n", hostname);
+    } else {
+        perror("hostname 오류");
+    }
+
+    return 0;
+}
+```
+
+# 15. wc
+
+## 기능
+
+파일의 줄 수, 단어 수, 문자 수를 출력합니다.
+
+```c id="0g8lvh"
+#include <stdio.h>
+#include <ctype.h>
+
+int main() {
+
+    FILE *fp = fopen("test.txt", "r");
+
+    if (fp == NULL) {
+        perror("wc 오류");
+        return 1;
+    }
+
+    int ch;
+    int lines = 0;
+    int words = 0;
+    int chars = 0;
+    int inWord = 0;
+
+    while ((ch = fgetc(fp)) != EOF) {
+
+        chars++;
+
+        if (ch == '\n')
+            lines++;
+
+        if (isspace(ch)) {
+            inWord = 0;
+        } else if (!inWord) {
+            words++;
+            inWord = 1;
+        }
+    }
+
+    printf("줄 수 : %d\n", lines);
+    printf("단어 수 : %d\n", words);
+    printf("문자 수 : %d\n", chars);
+
+    fclose(fp);
+
+    return 0;
+}
+```
+
+# 16. date
+
+## 기능
+
+현재 날짜와 시간을 출력합니다.
+
+```c id="e1rq4r"
+#include <stdio.h>
+#include <time.h>
+
+int main() {
+
+    time_t now;
+    time(&now);
+
+    printf("%s", ctime(&now));
+
+    return 0;
+}
+```
+
+# 17. echo
+
+## 기능
+
+입력한 문자열을 화면에 출력합니다.
+
+```c id="y0gkwh"
+#include <stdio.h>
+
+int main() {
+
+    char str[100];
+
+    printf("문자열 입력 : ");
+    fgets(str, sizeof(str), stdin);
+
+    printf("%s", str);
+
+    return 0;
+}
+```
+
+# 18. cd
+
+## 기능
+
+현재 작업 디렉터리를 변경합니다.
+
+```c id="f5r2y9"
+#include <stdio.h>
+#include <unistd.h>
+
+int main() {
+
+    if (chdir("/tmp") == 0) {
+        printf("디렉터리 변경 완료\n");
+    } else {
+        perror("cd 오류");
+    }
+
+    return 0;
+}
+```
+
+# 19. chmod
+
+## 기능
+
+파일의 접근 권한을 변경합니다.
+
+```c id="9jw77f"
 #include <stdio.h>
 #include <sys/stat.h>
 
@@ -388,13 +525,13 @@ int main() {
 }
 ```
 
-# 15. chown
+# 20. chown
 
 ## 기능
 
-파일 소유자를 변경합니다.
+파일의 소유자를 변경합니다.
 
-```c id="7q9s8w"
+```c id="0vc9y5"
 #include <stdio.h>
 #include <unistd.h>
 
@@ -409,59 +546,25 @@ int main() {
     return 0;
 }
 ```
-
-# 16. ps
-
-## 기능
-
-현재 실행 중인 프로세스 정보를 출력합니다.
-
-```c id="mjlwmn"
-#include <stdio.h>
-#include <stdlib.h>
-
-int main() {
-
-    system("ps");
-
-    return 0;
-}
-```
-
-# 17. top
+# 21. kill
 
 ## 기능
 
-실시간 프로세스 상태를 확인합니다.
+지정한 프로세스에 종료 시그널을 보내 프로세스를 종료합니다.
 
-```c id="fj1mca"
-#include <stdio.h>
-#include <stdlib.h>
-
-int main() {
-
-    system("top");
-
-    return 0;
-}
-```
-
-# 18. kill
-
-## 기능
-
-지정한 프로세스를 종료합니다.
-
-```c id="jw7s7m"
+```c id="4zkjvz"
 #include <stdio.h>
 #include <signal.h>
 
 int main() {
 
-    int pid = 1234;
+    int pid;
 
-    if (kill(pid, SIGKILL) == 0) {
-        printf("프로세스 종료 완료\n");
+    printf("종료할 PID 입력 : ");
+    scanf("%d", &pid);
+
+    if (kill(pid, SIGTERM) == 0) {
+        printf("프로세스 종료 성공\n");
     } else {
         perror("kill 오류");
     }
@@ -470,216 +573,280 @@ int main() {
 }
 ```
 
-# 19. df
+# 22. sleep
 
 ## 기능
 
-디스크 사용량 정보를 출력합니다.
+지정한 시간(초) 동안 프로그램 실행을 중지합니다.
 
-```c id="04kmec"
+```c id="9sltl4"
 #include <stdio.h>
-#include <stdlib.h>
+#include <unistd.h>
 
 int main() {
 
-    system("df -h");
+    printf("5초 동안 대기합니다.\n");
+
+    sleep(5);
+
+    printf("대기 종료\n");
 
     return 0;
 }
 ```
 
-# 20. du
+# 23. uptime
 
 ## 기능
 
-디렉터리의 용량을 출력합니다.
+시스템이 부팅된 후 경과된 시간을 출력합니다.
 
-```c id="hvl8c8"
+```c id="4hzn4w"
 #include <stdio.h>
-#include <stdlib.h>
+#include <sys/sysinfo.h>
 
 int main() {
 
-    system("du -sh .");
+    struct sysinfo info;
 
-    return 0;
-}
-```
-# 21. free
+    if (sysinfo(&info) == 0) {
 
-## 기능
+        long uptime = info.uptime;
 
-시스템의 메모리 사용량을 출력합니다.
+        printf("가동 시간 : %ld초\n", uptime);
 
-```c id="h8akdf"
-#include <stdio.h>
-#include <stdlib.h>
-
-int main() {
-
-    system("free -h");
+    } else {
+        perror("uptime 오류");
+    }
 
     return 0;
 }
 ```
 
-# 22. uname
+# 24. ps
+
+## 기능
+
+현재 실행 중인 프로세스 정보를 출력합니다.
+
+```c id="zy92kk"
+#include <stdio.h>
+#include <dirent.h>
+#include <ctype.h>
+
+int main() {
+
+    DIR *dir;
+    struct dirent *entry;
+
+    dir = opendir("/proc");
+
+    if (dir == NULL) {
+        perror("ps 오류");
+        return 1;
+    }
+
+    printf("PID 목록\n");
+
+    while ((entry = readdir(dir)) != NULL) {
+
+        if (isdigit(entry->d_name[0])) {
+            printf("%s\n", entry->d_name);
+        }
+    }
+
+    closedir(dir);
+
+    return 0;
+}
+```
+
+# 25. df
+
+## 기능
+
+파일 시스템의 전체 용량과 사용 가능한 용량을 출력합니다.
+
+```c id="35dq6p"
+#include <stdio.h>
+#include <sys/statvfs.h>
+
+int main() {
+
+    struct statvfs fs;
+
+    if (statvfs("/", &fs) == 0) {
+
+        unsigned long total =
+            (fs.f_blocks * fs.f_frsize) / (1024 * 1024);
+
+        unsigned long free =
+            (fs.f_bfree * fs.f_frsize) / (1024 * 1024);
+
+        printf("전체 용량 : %lu MB\n", total);
+        printf("남은 용량 : %lu MB\n", free);
+
+    } else {
+        perror("df 오류");
+    }
+
+    return 0;
+}
+```
+
+# 26. du
+
+## 기능
+
+파일의 크기를 출력합니다.
+
+```c id="3z9b4i"
+#include <stdio.h>
+#include <sys/stat.h>
+
+int main() {
+
+    struct stat st;
+
+    if (stat("test.txt", &st) == 0) {
+
+        printf("파일 크기 : %ld 바이트\n",
+               st.st_size);
+
+    } else {
+        perror("du 오류");
+    }
+
+    return 0;
+}
+```
+
+# 27. sort
+
+## 기능
+
+문자열을 오름차순으로 정렬합니다.
+
+```c id="x2yq74"
+#include <stdio.h>
+#include <string.h>
+
+int main() {
+
+    char str[5][20] = {
+        "banana",
+        "apple",
+        "orange",
+        "grape",
+        "kiwi"
+    };
+
+    char temp[20];
+
+    for (int i = 0; i < 4; i++) {
+
+        for (int j = i + 1; j < 5; j++) {
+
+            if (strcmp(str[i], str[j]) > 0) {
+
+                strcpy(temp, str[i]);
+                strcpy(str[i], str[j]);
+                strcpy(str[j], temp);
+            }
+        }
+    }
+
+    for (int i = 0; i < 5; i++) {
+        printf("%s\n", str[i]);
+    }
+
+    return 0;
+}
+```
+
+# 28. diff
+
+## 기능
+
+두 파일의 내용을 비교합니다.
+
+```c id="h0r74w"
+#include <stdio.h>
+
+int main() {
+
+    FILE *f1 = fopen("file1.txt", "r");
+    FILE *f2 = fopen("file2.txt", "r");
+
+    int ch1, ch2;
+    int line = 1;
+
+    if (!f1 || !f2) {
+        perror("diff 오류");
+        return 1;
+    }
+
+    while ((ch1 = fgetc(f1)) != EOF &&
+           (ch2 = fgetc(f2)) != EOF) {
+
+        if (ch1 != ch2) {
+            printf("차이 발견 : %d번째 줄\n", line);
+            break;
+        }
+
+        if (ch1 == '\n')
+            line++;
+    }
+
+    fclose(f1);
+    fclose(f2);
+
+    return 0;
+}
+```
+
+# 29. uname
 
 ## 기능
 
 운영체제 및 커널 정보를 출력합니다.
 
-```c id="xj7hda"
+```c id="d8n3y5"
 #include <stdio.h>
-#include <stdlib.h>
+#include <sys/utsname.h>
 
 int main() {
 
-    system("uname -a");
+    struct utsname info;
+
+    if (uname(&info) == 0) {
+
+        printf("시스템 : %s\n", info.sysname);
+        printf("노드명 : %s\n", info.nodename);
+        printf("커널 버전 : %s\n", info.release);
+
+    } else {
+        perror("uname 오류");
+    }
 
     return 0;
 }
 ```
 
-# 23. ping
+# 30. id
 
 ## 기능
 
-네트워크 연결 상태를 확인합니다.
+현재 사용자의 UID와 GID 정보를 출력합니다.
 
-```c id="p4md7v"
+```c id="4o8z3x"
 #include <stdio.h>
-#include <stdlib.h>
+#include <unistd.h>
 
 int main() {
 
-    system("ping -c 4 google.com");
-
-    return 0;
-}
-```
-
-# 24. wget
-
-## 기능
-
-인터넷에서 파일을 다운로드합니다.
-
-```c id="w6zv91"
-#include <stdio.h>
-#include <stdlib.h>
-
-int main() {
-
-    system("wget https://example.com/file.txt");
-
-    return 0;
-}
-```
-
-# 25. tar
-
-## 기능
-
-파일 및 디렉터리를 압축하거나 압축을 해제합니다.
-
-```c id="8q4scl"
-#include <stdio.h>
-#include <stdlib.h>
-
-int main() {
-
-    system("tar -cvf archive.tar test.txt");
-
-    return 0;
-}
-```
-
-# 26. zip
-
-## 기능
-
-파일을 ZIP 형식으로 압축합니다.
-
-```c id="y5c9dr"
-#include <stdio.h>
-#include <stdlib.h>
-
-int main() {
-
-    system("zip archive.zip test.txt");
-
-    return 0;
-}
-```
-
-# 27. unzip
-
-## 기능
-
-ZIP 압축 파일을 해제합니다.
-
-```c id="j4r9qa"
-#include <stdio.h>
-#include <stdlib.h>
-
-int main() {
-
-    system("unzip archive.zip");
-
-    return 0;
-}
-```
-
-# 28. whoami
-
-## 기능
-
-현재 로그인한 사용자 이름을 출력합니다.
-
-```c id="g2w7hs"
-#include <stdio.h>
-#include <stdlib.h>
-
-int main() {
-
-    system("whoami");
-
-    return 0;
-}
-```
-
-# 29. hostname
-
-## 기능
-
-현재 시스템의 호스트 이름을 출력합니다.
-
-```c id="m9v2tp"
-#include <stdio.h>
-#include <stdlib.h>
-
-int main() {
-
-    system("hostname");
-
-    return 0;
-}
-```
-
-# 30. date
-
-## 기능
-
-현재 날짜와 시간을 출력합니다.
-
-```c id="t8p5ke"
-#include <stdio.h>
-#include <stdlib.h>
-
-int main() {
-
-    system("date");
+    printf("UID : %d\n", getuid());
+    printf("GID : %d\n", getgid());
 
     return 0;
 }
